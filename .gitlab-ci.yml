@@ -1,0 +1,52 @@
+# Use the official gcc image
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - Build
+
+build:linux:
+  image: ubuntu:focal
+  stage: Build
+  script:
+    - apt-get update && apt-get -y install wget gnupg2 tzdata
+    - wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | apt-key add -
+    - wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.2.162-focal.list https://packages.lunarg.com/vulkan/1.2.162/lunarg-vulkan-1.2.162-focal.list
+    - apt-get update && apt-get -y install git cmake vulkan-sdk libsdl2-dev build-essential
+
+    - mkdir linux-x86_64
+    - cd linux-x86_64
+
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake --build . --target WickedStarter
+
+build:windows:
+  stage: Build
+  tags:
+    - windows
+  script:
+
+    - choco feature enable -n=allowGlobalConfirmation
+    - choco install cmake --installargs 'ADD_CMAKE_TO_PATH=User'
+    - choco install vulkan-sdk --version=1.2.162.1
+
+    - $Env:VK_SDK_PATH="C:\VulkanSDK\1.2.162.1"
+    - $Env:VULKAN_SDK="C:\VulkanSDK\1.2.162.1"
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    - $Env:Path
+
+    - vcpkg install sdl2:x64-windows
+
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    - $Env:Path
+
+    - mkdir windows-x86_64
+    - cd windows-x86_64
+
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    - Copy-Item -Path "_deps\wickedengine-src\WickedEngine\dxc.exe" -Destination "$Env:VULKAN_SDK\bin" -Recurse
+    - Copy-Item -Path "_deps\wickedengine-src\WickedEngine\dxcompiler.dll" -Destination "$Env:VULKAN_SDK\bin" -Recurse
+
+    - cmake --build . --target WickedStarter --config Release
