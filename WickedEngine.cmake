@@ -23,10 +23,11 @@ include_directories(${wickedengine_SOURCE_DIR}/WickedEngine)
 if (WIN32)
     # This is weird, the library is created as WickedEngine but changes name somewhere
     # If we change the name in CMake manually, linking still works, very *hacky*
-    set_target_properties(WickedEngine PROPERTIES OUTPUT_NAME "WickedEngine_Windows")
+    add_library(WickedEngine ALIAS WickedEngine_Windows)
+    #set_target_properties(WickedEngine PROPERTIES OUTPUT_NAME "WickedEngine_Windows")
 
     # We need to add these additional source files under windows, otherwise we get *unresolved external ...*
-    target_sources(WickedEngine PRIVATE
+    target_sources(WickedEngine_Windows PRIVATE
             ${wickedengine_SOURCE_DIR}/WickedEngine/wiNetwork_Windows.cpp
             ${wickedengine_SOURCE_DIR}/WickedEngine/wiGraphicsDevice_DX11.cpp
             ${wickedengine_SOURCE_DIR}/WickedEngine/wiGraphicsDevice_DX12.cpp)
@@ -43,12 +44,4 @@ add_custom_command(TARGET WickedEngineShaders POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${wickedengine_SOURCE_DIR}/WickedEngine/shaders
         ${CMAKE_BINARY_DIR}/WickedEngine/shaders
-        )
-
-# Create target for copying fonts to correct directory
-add_custom_target(WickedEngineFonts ALL DEPENDS WickedEngine)
-add_custom_command(TARGET WickedEngineFonts POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${wickedengine_SOURCE_DIR}/WickedEngine/fonts
-        ${CMAKE_BINARY_DIR}/WickedEngine/fonts
         )

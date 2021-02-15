@@ -22,7 +22,7 @@ else ()
 endif ()
 
 # Add dependencies (e.g Shaders, Fonts)
-add_dependencies(WickedStarter WickedStarterAssets WickedEngineShaders WickedEngineFonts)
+add_dependencies(WickedStarter WickedStarterAssets WickedEngineShaders)
 
 # Link libraries with executable
 target_link_libraries(WickedStarter PRIVATE WickedEngine WickedEngineUtility Threads::Threads)
